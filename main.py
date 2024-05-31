@@ -227,4 +227,15 @@ class Game:
         print(f"Final Scores: {self.player.name} - {self.player.score}, {self.computer.name} - {self.computer.score}")
         if self.player.score > self.computer.score:
             print(f"The winner is {self.player.name}!")
-        elif self.computer.score
+        elif self.computer.score > self.player.score:
+            print(f"The winner is {self.computer.name}!")
+        else:
+            print("It's a tie!")
+
+### Κύριο πρόγραμμα
+
+if __name__ == "__main__":
+    game = Game()
+    game.setup()
+    game.run()
+    game.end()
