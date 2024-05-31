@@ -35,7 +35,7 @@ class Player:
 
 class Human(Player):
     def play(self):
-        action = input(f"{self.name}, enter a word, 'change' to change letters, or 'pass' to skip: ").strip().lower()
+        action = input(f"{self.name}, enter a word, 'change' to change letters, or 'pass' to skip: ").strip().upper()
         return action
 
 class Computer(Player):
@@ -72,16 +72,27 @@ class Game:
         }
         return sum(letter_scores.get(letter, 0) for letter in word)
 
+    def valid_word(self, word, player_letters):
+        if word not in self.words:
+            return False
+        letters_copy = player_letters.copy()
+        for char in word:
+            if char in letters_copy:
+                letters_copy.remove(char)
+            else:
+                return False
+        return True
+
     def player_turn(self, player):
         while True:
             action = player.play() if player == self.player else player.play(self.words)
-            if action == "pass":
+            if action == "PASS":
                 return False
-            elif action == "change":
+            elif action == "CHANGE":
                 player.change_letters(self.sak)
                 print(f"{player.name} changed their letters. New letters: {player.letters}")
                 return False
-            elif all(player.letters.count(char) >= action.count(char) for char in action) and action in self.words:
+            elif self.valid_word(action, player.letters):
                 score = self.calculate_score(action)
                 player.score += score
                 print(f"{player.name} played {action} for {score} points. Total score: {player.score}")
