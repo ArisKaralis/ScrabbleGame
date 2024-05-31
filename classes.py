@@ -1,49 +1,57 @@
 import random
+import itertools
 
 class SakClass:
-    """Class representing the sack of letters in the game."""
-
-    def __init__(self, letters):
+    """
+    Κλάση που αναπαριστά το σακουλάκι με τα γράμματα.
+    """
+    def __init__(self):
         """
-        Initialize the SakClass object.
-
-        Args:
-            letters (list): List of letters in the sack.
+        Αρχικοποίηση του σακουλιού με γράμματα.
         """
-        self.letters = letters
+        self.letters = self.randomize_sak()
 
-    def add_letter(self, letter):
+    def randomize_sak(self):
         """
-        Add a letter to the sack.
-
-        Args:
-            letter (str): The letter to add.
+        Ανακατεύει τα γράμματα στο σακουλάκι.
+        Επιστρέφει:
+            λίστα: Ανακατεμένα γράμματα.
         """
-        self.letters.append(letter)
+        letters = list("ΑΒΓΔΕΖΗΘΙΚΛΜΝΞΟΠΡΣΤΥΦΧΨΩ" * 2)  # Παράδειγμα: κάθε γράμμα δύο φορές
+        random.shuffle(letters)
+        return letters
 
-    def remove_letter(self, letter):
+    def getletters(self, num=7):
         """
-        Remove a letter from the sack.
-
-        Args:
-            letter (str): The letter to remove.
+        Τραβάει γράμματα από το σακουλάκι.
+        Παράμετροι:
+            num (int): Ο αριθμός των γραμμάτων που θα τραβηχτούν.
+        Επιστρέφει:
+            λίστα: Τα γράμματα που τραβήχτηκαν.
         """
-        self.letters.remove(letter)
+        if len(self.letters) < num:
+            num = len(self.letters)
+        drawn_letters = [self.letters.pop(random.randint(0, len(self.letters) - 1)) for _ in range(num)]
+        return drawn_letters
 
-    def shuffle(self):
-        """Shuffle the letters in the sack."""
+    def putbackletters(self, letters):
+        """
+        Επιστρέφει γράμματα πίσω στο σακουλάκι.
+        Παράμετροι:
+            letters (λίστα): Τα γράμματα που θα επιστραφούν.
+        """
+        self.letters.extend(letters)
         random.shuffle(self.letters)
 
-
 class Player:
-    """Base class representing a player in the game."""
-
+    """
+    Κλάση που αναπαριστά έναν παίκτη.
+    """
     def __init__(self, name):
         """
-        Initialize the Player object.
-
-        Args:
-            name (str): The name of the player.
+        Αρχικοποίηση παίκτη.
+        Παράμετροι:
+            name (str): Το όνομα του παίκτη.
         """
         self.name = name
         self.score = 0
@@ -51,181 +59,195 @@ class Player:
 
     def __repr__(self):
         """
-        Return a string representation of the Player object.
-
-        Returns:
-            str: String representation of the player.
+        Αναπαράσταση του παίκτη ως συμβολοσειρά.
+        Επιστρέφει:
+            str: Αναπαράσταση του παίκτη.
         """
-        return f"Player(name={self.name}, score={self.score}, letters={self.letters})"
+        return f"Player({self.name})"
 
-    def play(self, sak):
+    def change_letters(self, sak):
         """
-        Play a turn in the game.
-
-        Args:
-            sak (SakClass): The sack of letters in the game.
+        Αλλάζει τα γράμματα του παίκτη με νέα από το σακουλάκι.
+        Παράμετροι:
+            sak (SakClass): Το σακουλάκι με τα γράμματα.
         """
-        raise NotImplementedError("Method 'play' must be implemented in derived classes.")
-
+        sak.putbackletters(self.letters)
+        self.letters = sak.getletters()
 
 class Human(Player):
-    """Class representing a human player in the game."""
-
-    def play(self, sak):
+    """
+    Κλάση που αναπαριστά έναν ανθρώπινο παίκτη.
+    """
+    def play(self):
         """
-        Play a turn in the game as a human player.
-
-        Args:
-            sak (SakClass): The sack of letters in the game.
+        Ζητάει από τον παίκτη να εισάγει μια λέξη, 'change' για αλλαγή γραμμάτων ή 'pass' για να παραλείψει τη σειρά του.
+        Επιστρέφει:
+            str: Η ενέργεια του παίκτη.
         """
-        word = input("Enter your word: ")
-        if self.validate_word(word, sak):
-            self.update_score(word)
-            self.update_letters(word, sak)
-        else:
-            print("Invalid word. Try again.")
-
-    def validate_word(self, word, sak):
-        """
-        Validate the entered word.
-
-        Args:
-            word (str): The word entered by the player.
-            sak (SakClass): The sack of letters in the game.
-
-        Returns:
-            bool: True if the word is valid, False otherwise.
-        """
-        # Add logic to validate word based on game rules and available letters in the sack
-        return True
-
-    def update_score(self, word):
-        """
-        Update the player's score based on the played word.
-
-        Args:
-            word (str): The word played by the player.
-        """
-        # Add logic to calculate score based on word length, bonus tiles, etc.
-        self.score += len(word)
-
-    def update_letters(self, word, sak):
-        """
-        Update the player's letters based on the played word.
-
-        Args:
-            word (str): The word played by the player.
-            sak (SakClass): The sack of letters in the game.
-        """
-        # Add logic to remove used letters from player's letters and replenish from the sack
-        for letter in word:
-            self.letters.remove(letter)
-            sak.add_letter(letter)
-
+        action = input("ΛΕΞΗ: ").strip().upper()
+        return action
 
 class Computer(Player):
-    """Class representing a computer player in the game."""
-
-    def play(self, sak):
+    """
+    Κλάση που αναπαριστά τον υπολογιστή ως παίκτη.
+    """
+    def play(self, valid_words):
         """
-        Play a turn in the game as a computer player.
-
-        Args:
-            sak (SakClass): The sack of letters in the game.
+        Επιλέγει μια έγκυρη λέξη από τα διαθέσιμα γράμματα του υπολογιστή.
+        Παράμετροι:
+            valid_words (σύνολο): Το σύνολο των έγκυρων λέξεων.
+        Επιστρέφει:
+            str: Η λέξη που επιλέχθηκε ή 'change'/'pass' αν δεν υπάρχει έγκυρη λέξη.
         """
-        word = self.generate_word(sak)
-        self.update_score(word)
-        self.update_letters(word, sak)
-
-    def generate_word(self, sak):
-        """
-        Generate a word to be played by the computer player.
-
-        Args:
-            sak (SakClass): The sack of letters in the game.
-
-        Returns:
-            str: The generated word.
-        """
-        # Add logic to generate word based on available letters and game strategy
-        return ""
-
-    def update_score(self, word):
-        """
-        Update the player's score based on the played word.
-
-        Args:
-            word (str): The word played by the player.
-        """
-        # Add logic to calculate score based on word length, bonus tiles, etc.
-        self.score += len(word)
-
-    def update_letters(self, word, sak):
-        """
-        Update the player's letters based on the played word.
-
-        Args:
-            word (str): The word played by the player.
-            sak (SakClass): The sack of letters in the game.
-        """
-        # Add logic to remove used letters from player's letters and replenish from the sack
-        for letter in word:
-            self.letters.remove(letter)
-            sak.add_letter(letter)
-
+        for i in range(7, 1, -1):
+            for perm in itertools.permutations(self.letters, i):
+                word = "".join(perm)
+                if word in valid_words:
+                    return word
+        return "CHANGE" if len(self.letters) > 1 else "PASS"
 
 class Game:
-    """Class representing the game itself."""
-
-    def __init__(self, players):
+    """
+    Κλάση που αναπαριστά το παιχνίδι Scrabble.
+    """
+    def __init__(self):
         """
-        Initialize the Game object.
-
-        Args:
-            players (list): List of Player objects participating in the game.
+        Αρχικοποίηση του παιχνιδιού.
         """
-        self.players = players
-        self.score_board = {}
-        self.dictionary = set()
+        self.sak = SakClass()
+        self.player = Human("Stavros")
+        self.computer = Computer("PC")
+        self.load_words()
+
+    def load_words(self):
+        """
+        Φορτώνει τις έγκυρες λέξεις από το αρχείο 'greek7.txt'.
+        """
+        with open('greek7.txt', 'r', encoding='utf-8') as file:
+            self.words = set(file.read().splitlines())
 
     def setup(self):
-        """Perform necessary actions to set up the game."""
-        self.load_dictionary()
+        """
+        Ετοιμάζει το παιχνίδι και δίνει τα αρχικά γράμματα στους παίκτες.
+        """
+        self.player.letters = self.sak.getletters()
+        self.computer.letters = self.sak.getletters()
+        print(f"Starting letters for {self.player.name}: {self.player.letters}")
+        print(f"Starting letters for {self.computer.name}: {self.computer.letters}")
 
-    def load_dictionary(self):
-        """Load the dictionary of valid words from a file."""
-        with open("dictionary.txt", "r") as file:
-            for line in file:
-                self.dictionary.add(line.strip())
+    def calculate_score(self, word):
+        """
+        Υπολογίζει το σκορ μιας λέξης.
+        Παράμετροι:
+            word (str): Η λέξη της οποίας το σκορ υπολογίζεται.
+        Επιστρέφει:
+            int: Το σκορ της λέξης.
+        """
+        letter_scores = {
+            'Α': 1, 'Β': 3, 'Γ': 2, 'Δ': 2, 'Ε': 1, 'Ζ': 4, 'Η': 4, 'Θ': 4,
+            'Ι': 1, 'Κ': 2, 'Λ': 3, 'Μ': 3, 'Ν': 1, 'Ξ': 8, 'Ο': 1, 'Π': 3,
+            'Ρ': 1, 'Σ': 1, 'Τ': 1, 'Υ': 2, 'Φ': 8, 'Χ': 8, 'Ψ': 10, 'Ω': 3
+        }
+        return sum(letter_scores.get(letter, 0) for letter in word)
+
+    def valid_word(self, word, player_letters):
+        """
+        Ελέγχει αν μια λέξη είναι έγκυρη και μπορεί να σχηματιστεί με τα διαθέσιμα γράμματα του παίκτη.
+        Παράμετροι:
+            word (str): Η λέξη που ελέγχεται.
+            player_letters (λίστα): Τα διαθέσιμα γράμματα του παίκτη.
+        Επιστρέφει:
+            bool: Αν η λέξη είναι έγκυρη.
+        """
+        if word not in self.words:
+            return False
+        letters_copy = player_letters.copy()
+        for char in word:
+            if char in letters_copy:
+                letters_copy.remove(char)
+            else:
+                return False
+        return True
+
+    def display_turn_info(self, player):
+        """
+        Εμφανίζει τις πληροφορίες για τη σειρά του παίκτη.
+        Παράμετροι:
+            player (Player): Ο παίκτης που παίζει τη σειρά του.
+        """
+        print("************************************************************")
+        print(f"       *** Παίκτης: {player.name}     *** Σκορ: {player.score}")
+        print(f"       >>> Γράμματα: {player.letters}")
+        print("************************************************************")
+
+    def player_turn(self, player):
+        """
+        Διαχειρίζεται τη σειρά ενός παίκτη.
+        Παράμετροι:
+            player (Player): Ο παίκτης που παίζει τη σειρά του.
+        Επιστρέφει:
+            bool: Αν ο παίκτης έπαιξε επιτυχώς μια λέξη.
+        """
+        self.display_turn_info(player)
+        while True:
+            action = player.play() if player == self.player else player.play(self.words)
+            if action == "PASS":
+                return False
+            elif action == "CHANGE":
+                player.change_letters(self.sak)
+                print(f"{player.name} changed their letters. New letters: {player.letters}")
+                return False
+            elif self.valid_word(action, player.letters):
+                score = self.calculate_score(action)
+                player.score += score
+                if player.name == "PC":
+                    print(f"ΛΕΞΗ: {action}")
+                print(f"Πόντοι Λέξης: {score}")
+                for char in action:
+                    player.letters.remove(char)
+                player.letters.extend(self.sak.getletters(7 - len(player.letters)))
+                self.display_turn_info(player)
+                return True
+            else:
+                if player == self.player:
+                    print("Invalid word. Try again.")
+                else:
+                    return False
 
     def run(self):
-        """Execute the main loop of the game."""
-        for player in self.players:
-            self.score_board[player] = 0
-
-        sak = SakClass(["A", "B", "C", "D", "E"])  # Example initial letters in the sack
-
-        while not self.is_game_over():
-            for player in self.players:
-                print(f"Player {player.name}'s turn:")
-                player.play(sak)
-
-        self.end()
-
-    def is_game_over(self):
         """
-        Check if the game is over.
-
-        Returns:
-            bool: True if the game is over, False otherwise.
+        Εκτελεί τη ροή του παιχνιδιού.
         """
-        # Add logic to check game-ending conditions, such as all players passing their turn
-        return False
+        pass_count = 0
+        try:
+            while self.sak.letters or any(self.player.letters) or any(self.computer.letters):
+                if not self.player_turn(self.player):
+                    pass_count += 1
+                else:
+                    pass_count = 0
+
+                if pass_count >= 2:
+                    break
+
+                if not self.player_turn(self.computer):
+                    pass_count += 1
+                else:
+                    pass_count = 0
+
+                if pass_count >= 2:
+                    break
+        except KeyboardInterrupt:
+            print("\nGame interrupted. Exiting gracefully...")
 
     def end(self):
-        """Perform necessary actions to end the game."""
-        # Add logic to display final scores, declare winner, save game statistics, etc.
+        """
+        Ανακοινώνει τη λήξη του παιχνιδιού και τους νικητές.
+        """
         print("Game Over")
-        print("Final Scores:")
-        for player, score in self.score_board.items():
-            print(f"{player.name}: {score}")
+        print(f"Final Scores: {self.player.name} - {self.player.score}, {self.computer.name} - {self.computer.score}")
+        if self.player.score > self.computer.score:
+            print(f"The winner is {self.player.name}!")
+        elif self.computer.score > self.player.score:
+            print(f"The winner is {self.computer.name}!")
+        else:
+            print("It's a tie!")
